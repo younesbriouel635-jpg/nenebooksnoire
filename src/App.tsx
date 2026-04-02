@@ -11,6 +11,7 @@ import Library from "./pages/Library.tsx";
 import BookDetail from "./pages/BookDetail.tsx";
 import AdminDashboard from "./pages/AdminDashboard.tsx";
 import Pricing from "./pages/Pricing.tsx";
+import Reader from "./pages/Reader.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
