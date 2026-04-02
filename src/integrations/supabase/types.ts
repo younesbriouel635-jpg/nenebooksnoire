@@ -74,6 +74,41 @@ export type Database = {
         }
         Relationships: []
       }
+      translations_cache: {
+        Row: {
+          book_id: string | null
+          created_at: string
+          id: string
+          source_text: string
+          target_language: string
+          translated_text: string
+        }
+        Insert: {
+          book_id?: string | null
+          created_at?: string
+          id?: string
+          source_text: string
+          target_language: string
+          translated_text: string
+        }
+        Update: {
+          book_id?: string | null
+          created_at?: string
+          id?: string
+          source_text?: string
+          target_language?: string
+          translated_text?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "translations_cache_book_id_fkey"
+            columns: ["book_id"]
+            isOneToOne: false
+            referencedRelation: "books"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           id: string
