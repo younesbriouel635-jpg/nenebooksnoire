@@ -30,6 +30,7 @@ const App = () => (
             <Route path="/library" element={<PremiumGuard><Library /></PremiumGuard>} />
             <Route path="/book/:id" element={<PremiumGuard><BookDetail /></PremiumGuard>} />
             <Route path="/admin" element={<AdminGuard><AdminDashboard /></AdminGuard>} />
+            <Route path="/read/:id" element={<PremiumGuard><Reader /></PremiumGuard>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
