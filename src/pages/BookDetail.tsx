@@ -40,12 +40,8 @@ const BookDetail = () => {
     );
   }
 
-  const handleStartReading = async () => {
-    if (!book.file_url) return;
-    const { data } = await supabase.storage.from("book-files").createSignedUrl(book.file_url, 3600);
-    if (data?.signedUrl) {
-      window.open(data.signedUrl, "_blank");
-    }
+  const handleStartReading = () => {
+    navigate(`/read/${id}`);
   };
 
   return (

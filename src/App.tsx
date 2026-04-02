@@ -11,6 +11,7 @@ import Library from "./pages/Library.tsx";
 import BookDetail from "./pages/BookDetail.tsx";
 import AdminDashboard from "./pages/AdminDashboard.tsx";
 import Pricing from "./pages/Pricing.tsx";
+import Reader from "./pages/Reader.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
@@ -29,6 +30,7 @@ const App = () => (
             <Route path="/library" element={<PremiumGuard><Library /></PremiumGuard>} />
             <Route path="/book/:id" element={<PremiumGuard><BookDetail /></PremiumGuard>} />
             <Route path="/admin" element={<AdminGuard><AdminDashboard /></AdminGuard>} />
+            <Route path="/read/:id" element={<PremiumGuard><Reader /></PremiumGuard>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
