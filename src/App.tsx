@@ -12,6 +12,7 @@ import BookDetail from "./pages/BookDetail.tsx";
 import AdminDashboard from "./pages/AdminDashboard.tsx";
 import Pricing from "./pages/Pricing.tsx";
 import Reader from "./pages/Reader.tsx";
+import Dashboard from "./pages/Dashboard.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
@@ -27,6 +28,7 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/pricing" element={<Pricing />} />
+            <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/library" element={<PremiumGuard><Library /></PremiumGuard>} />
             <Route path="/book/:id" element={<PremiumGuard><BookDetail /></PremiumGuard>} />
             <Route path="/admin" element={<AdminGuard><AdminDashboard /></AdminGuard>} />

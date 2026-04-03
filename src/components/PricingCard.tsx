@@ -1,6 +1,8 @@
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { Check } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import PayPalButton from "@/components/PayPalButton";
 
 const features = [
   "Unlimited access to all classics",
@@ -13,6 +15,7 @@ const features = [
 
 const PricingCard = () => {
   const navigate = useNavigate();
+  const { user, isPremium } = useAuth();
 
   return (
     <section id="pricing" className="py-24 px-6 flex flex-col items-center">
@@ -45,13 +48,29 @@ const PricingCard = () => {
           ))}
         </ul>
 
-        <Button
-          size="lg"
-          className="w-full text-sm tracking-widest uppercase py-6"
-          onClick={() => navigate("/auth")}
-        >
-          Join Now
-        </Button>
+        {isPremium ? (
+          <div className="text-center">
+            <p className="font-serif text-lg font-bold mb-2">You're a VIP Member</p>
+            <Button
+              variant="outline"
+              size="lg"
+              className="w-full text-sm tracking-widest uppercase py-6"
+              onClick={() => navigate("/dashboard")}
+            >
+              Go to Dashboard
+            </Button>
+          </div>
+        ) : user ? (
+          <PayPalButton />
+        ) : (
+          <Button
+            size="lg"
+            className="w-full text-sm tracking-widest uppercase py-6"
+            onClick={() => navigate("/auth")}
+          >
+            Sign In to Subscribe
+          </Button>
+        )}
       </div>
     </section>
   );
