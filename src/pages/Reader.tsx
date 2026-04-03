@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import { translateText, getSignedBookUrl } from "@/lib/reader-utils";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
@@ -24,6 +25,7 @@ const Reader = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user } = useAuth();
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const [book, setBook] = useState<Tables<"books"> | null>(null);
@@ -36,8 +38,9 @@ const Reader = () => {
   const [translating, setTranslating] = useState(false);
   const [loading, setLoading] = useState(true);
   const [showText, setShowText] = useState(false);
+  const [progressLoaded, setProgressLoaded] = useState(false);
 
-  // Load book and PDF
+  // Load book, PDF, and saved progress
   useEffect(() => {
     const load = async () => {
       if (!id) return;
@@ -48,6 +51,20 @@ const Reader = () => {
         return;
       }
       setBook(bookData);
+
+      // Load saved reading progress
+      if (user) {
+        const { data: progress } = await supabase
+          .from("reading_progress")
+          .select("current_page")
+          .eq("user_id", user.id)
+          .eq("book_id", id)
+          .single();
+        if (progress?.current_page) {
+          setCurrentPage(progress.current_page);
+        }
+      }
+      setProgressLoaded(true);
 
       if (!bookData.file_url) {
         setLoading(false);
@@ -73,6 +90,20 @@ const Reader = () => {
     };
     load();
   }, [id]);
+
+  // Save reading progress on page change
+  useEffect(() => {
+    if (!user || !id || !progressLoaded) return;
+    const saveProgress = async () => {
+      await supabase
+        .from("reading_progress")
+        .upsert(
+          { user_id: user.id, book_id: id, current_page: currentPage },
+          { onConflict: "user_id,book_id" }
+        );
+    };
+    saveProgress();
+  }, [currentPage, user, id, progressLoaded]);
 
   // Render page
   const renderPage = useCallback(
