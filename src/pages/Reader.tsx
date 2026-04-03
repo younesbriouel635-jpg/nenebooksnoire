@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import { translateText, getSignedBookUrl } from "@/lib/reader-utils";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
