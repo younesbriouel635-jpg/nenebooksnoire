@@ -149,7 +149,7 @@ const Reader = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground flex flex-col">
+    <div className="min-h-screen bg-reader text-reader-foreground flex flex-col">
       {/* Toolbar */}
       <div className="border-b border-border px-4 py-3 flex items-center justify-between flex-wrap gap-3">
         <div className="flex items-center gap-3">
@@ -212,7 +212,7 @@ const Reader = () => {
       {/* Reader */}
       <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
         {/* PDF Canvas */}
-        <div className="flex-1 overflow-auto flex justify-center p-4 bg-secondary/30">
+        <div className="flex-1 overflow-auto flex justify-center p-4 bg-reader/80">
           <canvas ref={canvasRef} className="max-w-full h-auto shadow-lg" />
         </div>
 
