@@ -212,7 +212,7 @@ const Reader = () => {
       {/* Reader */}
       <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
         {/* PDF Canvas */}
-        <div className="flex-1 overflow-auto flex justify-center p-4 bg-secondary/30">
+        <div className="flex-1 overflow-auto flex justify-center p-4 bg-reader/80">
           <canvas ref={canvasRef} className="max-w-full h-auto shadow-lg" />
         </div>
 

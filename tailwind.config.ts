@@ -61,6 +61,10 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+        reader: {
+          DEFAULT: "hsl(var(--reader-background))",
+          foreground: "hsl(var(--reader-foreground))",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",
