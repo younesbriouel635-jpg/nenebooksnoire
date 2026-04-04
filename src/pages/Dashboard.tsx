@@ -4,16 +4,25 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { BookOpen, Crown, LogOut } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
+
+type ReadingProgressWithBook = {
+  book_id: string;
+  current_page: number;
+  book: Tables<"books"> | null;
+  totalPages?: number;
+};
 
 const Dashboard = () => {
   const { user, isPremium, signOut } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [books, setBooks] = useState<Tables<"books">[]>([]);
+  const [continueReading, setContinueReading] = useState<ReadingProgressWithBook[]>([]);
   const [subscriptionId, setSubscriptionId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -21,25 +30,32 @@ const Dashboard = () => {
     const load = async () => {
       if (!user) return;
 
-      const [booksRes, profileRes] = await Promise.all([
+      const [booksRes, profileRes, progressRes] = await Promise.all([
         supabase.from("books").select("*").limit(6),
         supabase.from("profiles").select("subscription_id").eq("user_id", user.id).single(),
+        supabase.from("reading_progress").select("book_id, current_page").eq("user_id", user.id).order("updated_at", { ascending: false }).limit(4),
       ]);
 
       setBooks(booksRes.data || []);
       setSubscriptionId(profileRes.data?.subscription_id || null);
+
+      // Fetch book details for reading progress
+      if (progressRes.data && progressRes.data.length > 0) {
+        const bookIds = progressRes.data.map((p) => p.book_id);
+        const { data: progressBooks } = await supabase.from("books").select("*").in("id", bookIds);
+
+        const items: ReadingProgressWithBook[] = progressRes.data.map((p) => ({
+          book_id: p.book_id,
+          current_page: p.current_page,
+          book: progressBooks?.find((b) => b.id === p.book_id) || null,
+        }));
+        setContinueReading(items);
+      }
+
       setLoading(false);
     };
     load();
   }, [user]);
-
-  const handleCancelSubscription = async () => {
-    if (!user) return;
-    toast({
-      title: "To cancel your subscription",
-      description: "Please visit PayPal.com → Settings → Payments → Manage automatic payments to cancel.",
-    });
-  };
 
   const handleSignOut = async () => {
     await signOut();
@@ -94,7 +110,12 @@ const Dashboard = () => {
                 variant="outline"
                 size="sm"
                 className="text-xs tracking-widest uppercase"
-                onClick={handleCancelSubscription}
+                onClick={() =>
+                  toast({
+                    title: "To cancel your subscription",
+                    description: "Please visit PayPal.com → Settings → Payments → Manage automatic payments to cancel.",
+                  })
+                }
               >
                 Manage Subscription
               </Button>
@@ -116,7 +137,49 @@ const Dashboard = () => {
           )}
         </div>
 
-        {/* Current Reads */}
+        {/* Continue Reading */}
+        {continueReading.length > 0 && (
+          <div className="mb-16">
+            <p className="text-xs font-sans tracking-[0.3em] uppercase text-muted-foreground mb-4">
+              Continue Reading
+            </p>
+            <h2 className="text-2xl font-serif font-bold mb-8">Pick Up Where You Left Off</h2>
+            <div className="space-y-4">
+              {continueReading.map((item) => {
+                if (!item.book) return null;
+                const progressPercent = Math.min(item.current_page * 3, 100); // Estimate ~33 pages per book
+                return (
+                  <button
+                    key={item.book_id}
+                    onClick={() => isPremium && navigate(`/read/${item.book_id}`)}
+                    className={`w-full flex items-center gap-4 border border-border p-4 text-left hover:bg-secondary/50 transition-colors ${!isPremium ? "opacity-50 cursor-not-allowed" : ""}`}
+                    disabled={!isPremium}
+                  >
+                    {item.book.cover_url ? (
+                      <img src={item.book.cover_url} alt="" className="w-12 h-16 object-cover border border-border flex-shrink-0" />
+                    ) : (
+                      <div className="w-12 h-16 bg-secondary border border-border flex items-center justify-center flex-shrink-0">
+                        <BookOpen className="h-4 w-4 text-muted-foreground" />
+                      </div>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <p className="font-serif text-sm font-semibold truncate">{item.book.title}</p>
+                      <p className="text-xs text-muted-foreground font-sans mb-2">{item.book.author}</p>
+                      <div className="flex items-center gap-3">
+                        <Progress value={progressPercent} className="h-1.5 flex-1" />
+                        <span className="text-xs text-muted-foreground font-sans tabular-nums flex-shrink-0">
+                          Page {item.current_page}
+                        </span>
+                      </div>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Your Library */}
         <div>
           <p className="text-xs font-sans tracking-[0.3em] uppercase text-muted-foreground mb-4">
             Current Reads
@@ -148,9 +211,8 @@ const Dashboard = () => {
               {books.map((book) => (
                 <button
                   key={book.id}
-                  onClick={() => isPremium && navigate(`/book/${book.id}`)}
-                  className={`text-left group ${!isPremium ? "opacity-50 cursor-not-allowed" : ""}`}
-                  disabled={!isPremium}
+                  onClick={() => navigate(`/book/${book.id}`)}
+                  className="text-left group"
                 >
                   <div className="aspect-[2/3] bg-secondary border border-border mb-3 overflow-hidden">
                     {book.cover_url ? (
