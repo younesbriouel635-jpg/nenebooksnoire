@@ -17,6 +17,7 @@ export type Database = {
       books: {
         Row: {
           author: string
+          category: string | null
           cover_url: string | null
           created_at: string
           description: string | null
@@ -27,6 +28,7 @@ export type Database = {
         }
         Insert: {
           author: string
+          category?: string | null
           cover_url?: string | null
           created_at?: string
           description?: string | null
@@ -37,6 +39,7 @@ export type Database = {
         }
         Update: {
           author?: string
+          category?: string | null
           cover_url?: string | null
           created_at?: string
           description?: string | null
@@ -105,6 +108,27 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      system_settings: {
+        Row: {
+          id: string
+          key: string
+          updated_at: string
+          value: string
+        }
+        Insert: {
+          id?: string
+          key: string
+          updated_at?: string
+          value: string
+        }
+        Update: {
+          id?: string
+          key?: string
+          updated_at?: string
+          value?: string
+        }
+        Relationships: []
       }
       translations_cache: {
         Row: {

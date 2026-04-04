@@ -2,22 +2,25 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Crown } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { useAuth } from "@/hooks/useAuth";
+import PayPalButton from "@/components/PayPalButton";
 import type { Tables } from "@/integrations/supabase/types";
 
 const BookDetail = () => {
   const { id } = useParams<{ id: string }>();
-  const [book, setBook] = useState<Tables<"books"> | null>(null);
+  const [book, setBook] = useState<(Tables<"books"> & { category?: string | null }) | null>(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const { user, isPremium, isAdmin } = useAuth();
 
   useEffect(() => {
     const fetchBook = async () => {
       if (!id) return;
       const { data } = await supabase.from("books").select("*").eq("id", id).single();
-      setBook(data);
+      setBook(data as any);
       setLoading(false);
     };
     fetchBook();
@@ -40,9 +43,7 @@ const BookDetail = () => {
     );
   }
 
-  const handleStartReading = () => {
-    navigate(`/read/${id}`);
-  };
+  const canRead = isPremium || isAdmin;
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -72,6 +73,7 @@ const BookDetail = () => {
           <div className="flex-1">
             <p className="text-xs font-sans tracking-[0.3em] uppercase text-muted-foreground mb-3">
               {book.author}
+              {(book as any).category && <span> · {(book as any).category}</span>}
             </p>
             <h1 className="text-3xl sm:text-4xl font-serif font-bold mb-6">{book.title}</h1>
 
@@ -82,14 +84,38 @@ const BookDetail = () => {
             )}
 
             <div className="border-t border-border pt-8">
-              <Button
-                size="lg"
-                className="text-sm tracking-widest uppercase px-10 py-6"
-                onClick={handleStartReading}
-                disabled={!book.file_url}
-              >
-                {book.file_url ? "Start Reading" : "Coming Soon"}
-              </Button>
+              {canRead ? (
+                <Button
+                  size="lg"
+                  className="text-sm tracking-widest uppercase px-10 py-6"
+                  onClick={() => navigate(`/read/${id}`)}
+                  disabled={!book.file_url}
+                >
+                  {book.file_url ? "Start Reading" : "Coming Soon"}
+                </Button>
+              ) : (
+                <div className="border-2 border-primary/30 p-8 space-y-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Crown className="h-5 w-5 text-primary" />
+                    <p className="text-xs font-sans tracking-[0.3em] uppercase">VIP Only</p>
+                  </div>
+                  <p className="font-serif text-lg font-bold">Upgrade to VIP to Read</p>
+                  <p className="text-sm font-sans text-muted-foreground">
+                    This book is available exclusively for VIP members. Subscribe for $50/month to unlock unlimited reading.
+                  </p>
+                  {user ? (
+                    <PayPalButton />
+                  ) : (
+                    <Button
+                      size="lg"
+                      className="w-full text-sm tracking-widest uppercase py-6"
+                      onClick={() => navigate("/auth")}
+                    >
+                      Sign In to Subscribe
+                    </Button>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         </div>
