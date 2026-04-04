@@ -11,9 +11,6 @@ declare global {
   }
 }
 
-const PAYPAL_CLIENT_ID = import.meta.env.VITE_PAYPAL_CLIENT_ID || "sb";
-const PAYPAL_PLAN_ID = import.meta.env.VITE_PAYPAL_PLAN_ID || "P-XXXXXXXXXXXXXXXXXXXXX";
-
 const PayPalButton = () => {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -21,8 +18,37 @@ const PayPalButton = () => {
   const paypalRef = useRef<HTMLDivElement>(null);
   const [sdkReady, setSdkReady] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [clientId, setClientId] = useState<string | null>(null);
+  const [planId, setPlanId] = useState<string | null>(null);
 
+  // Fetch PayPal settings from system_settings
   useEffect(() => {
+    const fetchSettings = async () => {
+      const { data } = await supabase
+        .from("system_settings" as any)
+        .select("key, value")
+        .in("key", ["PAYPAL_CLIENT_ID", "PAYPAL_PLAN_ID"]);
+
+      let cid = import.meta.env.VITE_PAYPAL_CLIENT_ID || null;
+      let pid = import.meta.env.VITE_PAYPAL_PLAN_ID || null;
+
+      if (data) {
+        for (const row of data as any[]) {
+          if (row.key === "PAYPAL_CLIENT_ID" && row.value) cid = row.value;
+          if (row.key === "PAYPAL_PLAN_ID" && row.value) pid = row.value;
+        }
+      }
+
+      setClientId(cid);
+      setPlanId(pid);
+    };
+    fetchSettings();
+  }, []);
+
+  // Load PayPal SDK
+  useEffect(() => {
+    if (!clientId) return;
+
     if (document.querySelector('script[data-paypal-sdk]')) {
       setSdkReady(true);
       setLoading(false);
@@ -30,7 +56,7 @@ const PayPalButton = () => {
     }
 
     const script = document.createElement("script");
-    script.src = `https://www.paypal.com/sdk/js?client-id=${PAYPAL_CLIENT_ID}&vault=true&intent=subscription`;
+    script.src = `https://www.paypal.com/sdk/js?client-id=${clientId}&vault=true&intent=subscription`;
     script.setAttribute("data-paypal-sdk", "true");
     script.async = true;
     script.onload = () => {
@@ -42,12 +68,11 @@ const PayPalButton = () => {
       toast({ title: "Failed to load PayPal", variant: "destructive" });
     };
     document.body.appendChild(script);
-  }, []);
+  }, [clientId]);
 
   useEffect(() => {
-    if (!sdkReady || !window.paypal || !paypalRef.current) return;
+    if (!sdkReady || !window.paypal || !paypalRef.current || !planId) return;
 
-    // Clear previous buttons
     paypalRef.current.innerHTML = "";
 
     window.paypal
@@ -60,14 +85,11 @@ const PayPalButton = () => {
         },
         createSubscription: (_data: any, actions: any) => {
           return actions.subscription.create({
-            plan_id: PAYPAL_PLAN_ID,
+            plan_id: planId,
             custom_id: user?.id || "",
           });
         },
         onApprove: async (data: any) => {
-          console.log("Subscription approved:", data.subscriptionID);
-
-          // Optimistically update profile
           if (user) {
             await supabase
               .from("profiles")
@@ -77,7 +99,6 @@ const PayPalButton = () => {
               })
               .eq("user_id", user.id);
           }
-
           toast({ title: "Welcome to VIP!", description: "Your subscription is now active." });
           navigate("/dashboard");
         },
@@ -87,7 +108,7 @@ const PayPalButton = () => {
         },
       })
       .render(paypalRef.current);
-  }, [sdkReady, user]);
+  }, [sdkReady, user, planId]);
 
   if (!user) {
     return (
@@ -97,6 +118,14 @@ const PayPalButton = () => {
           sign in
         </a>{" "}
         to subscribe.
+      </p>
+    );
+  }
+
+  if (!clientId || !planId) {
+    return (
+      <p className="text-sm text-muted-foreground font-sans text-center">
+        Payment system is being configured.
       </p>
     );
   }
