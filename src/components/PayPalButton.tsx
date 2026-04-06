@@ -25,15 +25,15 @@ const PayPalButton = () => {
   useEffect(() => {
     const fetchSettings = async () => {
       const { data } = await supabase
-        .from("system_settings" as any)
+        .from("system_settings")
         .select("key, value")
         .in("key", ["PAYPAL_CLIENT_ID", "PAYPAL_PLAN_ID"]);
 
-      let cid = import.meta.env.VITE_PAYPAL_CLIENT_ID || null;
-      let pid = import.meta.env.VITE_PAYPAL_PLAN_ID || null;
+      let cid: string | null = null;
+      let pid: string | null = null;
 
       if (data) {
-        for (const row of data as any[]) {
+        for (const row of data) {
           if (row.key === "PAYPAL_CLIENT_ID" && row.value) cid = row.value;
           if (row.key === "PAYPAL_PLAN_ID" && row.value) pid = row.value;
         }

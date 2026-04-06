@@ -34,7 +34,7 @@ const AdminDashboard = () => {
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [bookFile, setBookFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
-  const [books, setBooks] = useState<(Tables<"books"> & { category?: string | null })[]>([]);
+  const [books, setBooks] = useState<Tables<"books">[]>([]);
   const [loadingBooks, setLoadingBooks] = useState(true);
 
   // Settings modal state
@@ -54,12 +54,12 @@ const AdminDashboard = () => {
   };
 
   const fetchSettings = async () => {
-    const { data } = await supabase
-      .from("system_settings" as any)
+      const { data } = await supabase
+      .from("system_settings")
       .select("key, value")
       .in("key", ["PAYPAL_CLIENT_ID", "PAYPAL_PLAN_ID"]);
     if (data) {
-      for (const row of data as any[]) {
+      for (const row of data) {
         if (row.key === "PAYPAL_CLIENT_ID") setPaypalClientId(row.value);
         if (row.key === "PAYPAL_PLAN_ID") setPaypalPlanId(row.value);
       }
@@ -80,8 +80,8 @@ const AdminDashboard = () => {
       ]) {
         if (!value.trim()) continue;
         const { error } = await supabase
-          .from("system_settings" as any)
-          .upsert({ key, value, updated_at: new Date().toISOString() } as any, { onConflict: "key" });
+          .from("system_settings")
+          .upsert({ key, value, updated_at: new Date().toISOString() }, { onConflict: "key" });
         if (error) throw error;
       }
       toast({ title: "Settings saved successfully." });
@@ -128,7 +128,7 @@ const AdminDashboard = () => {
         cover_url,
         file_url,
         category: category || null,
-      } as any);
+      });
 
       if (error) throw error;
 
