@@ -34,7 +34,7 @@ const AdminDashboard = () => {
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [bookFile, setBookFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
-  const [books, setBooks] = useState<(Tables<"books"> & { category?: string | null })[]>([]);
+  const [books, setBooks] = useState<Tables<"books">[]>([]);
   const [loadingBooks, setLoadingBooks] = useState(true);
 
   // Settings modal state
