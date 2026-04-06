@@ -54,12 +54,12 @@ const AdminDashboard = () => {
   };
 
   const fetchSettings = async () => {
-    const { data } = await supabase
-      .from("system_settings" as any)
+      const { data } = await supabase
+      .from("system_settings")
       .select("key, value")
       .in("key", ["PAYPAL_CLIENT_ID", "PAYPAL_PLAN_ID"]);
     if (data) {
-      for (const row of data as any[]) {
+      for (const row of data) {
         if (row.key === "PAYPAL_CLIENT_ID") setPaypalClientId(row.value);
         if (row.key === "PAYPAL_PLAN_ID") setPaypalPlanId(row.value);
       }
