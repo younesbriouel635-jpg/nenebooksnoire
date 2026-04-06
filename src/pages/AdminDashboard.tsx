@@ -128,7 +128,7 @@ const AdminDashboard = () => {
         cover_url,
         file_url,
         category: category || null,
-      } as any);
+      });
 
       if (error) throw error;
 
