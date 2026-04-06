@@ -80,8 +80,8 @@ const AdminDashboard = () => {
       ]) {
         if (!value.trim()) continue;
         const { error } = await supabase
-          .from("system_settings" as any)
-          .upsert({ key, value, updated_at: new Date().toISOString() } as any, { onConflict: "key" });
+          .from("system_settings")
+          .upsert({ key, value, updated_at: new Date().toISOString() }, { onConflict: "key" });
         if (error) throw error;
       }
       toast({ title: "Settings saved successfully." });
